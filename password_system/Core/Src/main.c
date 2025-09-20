@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "ssd1306_app.h"
 #include "bsp_system.h"
+#include "buzzer_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,6 +89,11 @@ int main(void)
     Error_Handler();
   }
 
+  if(app_buzzer_init() != APP_BUZZER_OK)
+  {
+    /* Buzzer initialization failed */
+    Error_Handler();
+  } 
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -95,19 +101,19 @@ int main(void)
   /* USER CODE BEGIN 2 */
   
   // Initialize BSP SSD1306 display
-  if (bsp_ssd1306_init(&display_handle, &system_config) != BSP_SSD1306_OK)
-  {
-    Error_Handler();
-  }
+  // if (bsp_ssd1306_init(&display_handle, &system_config) != BSP_SSD1306_OK)
+  // {
+  //   Error_Handler();
+  // }
   
-  // Initialize SSD1306 application layer
-  if (ssd1306_app_init() != SSD1306_APP_OK)
-  {
-    Error_Handler();
-  }
+  // // Initialize SSD1306 application layer
+  // if (ssd1306_app_init() != SSD1306_APP_OK)
+  // {
+  //   Error_Handler();
+  // }
   
-  // Display Hello World message
-  ssd1306_app_display_message("Hello World");
+  // // Display Hello World message
+  // ssd1306_app_display_message("Hello World");
   
   /* USER CODE END 2 */
   /* Infinite loop */
@@ -115,7 +121,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    
+    app_buzzer_play_success(70);
+
+    HAL_Delay(1000);
+
+    app_buzzer_play_error(70);
+
+    HAL_Delay(1000);
     /* Display stays on, no continuous processing needed */
     
     /* Small delay to prevent CPU hogging */
