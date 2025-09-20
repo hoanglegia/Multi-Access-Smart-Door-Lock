@@ -1,0 +1,12 @@
+../BSP/Src/bsp_buzzer.c:72:21:bsp_buzzer_init	4
+../BSP/Src/bsp_buzzer.c:103:21:bsp_buzzer_init_system	1
+../BSP/Src/bsp_buzzer.c:109:21:bsp_buzzer_deinit	3
+../BSP/Src/bsp_buzzer.c:130:21:bsp_buzzer_play_tone	5
+../BSP/Src/bsp_buzzer.c:161:21:bsp_buzzer_stop	3
+../BSP/Src/bsp_buzzer.c:179:21:bsp_buzzer_get_status	2
+../BSP/Src/bsp_buzzer.c:190:6:bsp_buzzer_is_initialized	1
+../BSP/Src/bsp_buzzer.c:195:18:bsp_buzzer_get_handle	2
+../BSP/Src/bsp_buzzer.c:206:28:bsp_convert_driver_status	5
+../BSP/Src/bsp_buzzer.c:227:13:bsp_buzzer_init_default_config	1
+../BSP/Src/bsp_buzzer.c:240:28:bsp_buzzer_hw_init	7
+../BSP/Src/bsp_buzzer.c:330:28:bsp_buzzer_hw_deinit	2

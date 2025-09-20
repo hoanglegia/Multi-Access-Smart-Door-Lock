@@ -1,0 +1,11 @@
+../BSP/Src/bsp_system.c:53:21:bsp_system_init	24	static
+../BSP/Src/bsp_system.c:105:21:bsp_system_clock_config	88	static
+../BSP/Src/bsp_system.c:180:21:bsp_system_gpio_clocks_enable	32	static
+../BSP/Src/bsp_system.c:204:21:bsp_system_get_clocks	24	static
+../BSP/Src/bsp_system.c:223:9:bsp_system_get_version	16	static
+../BSP/Src/bsp_system.c:233:13:bsp_system_get_mcu_type	16	static
+../BSP/Src/bsp_system.c:243:13:bsp_system_get_board_type	16	static
+../BSP/Src/bsp_system.c:253:6:bsp_system_reset	8	static
+../BSP/Src/bsp_system.c:258:21:bsp_system_enter_low_power	16	static
+../BSP/Src/bsp_system.c:277:28:bsp_system_validate_version	16	static
+../BSP/Src/bsp_system.c:291:28:bsp_system_power_config	24	static

@@ -1,0 +1,11 @@
+../DeviceDrivers/Src/buzzer_driver.c:89:17:buzzer_init	32	static
+../DeviceDrivers/Src/buzzer_driver.c:118:17:buzzer_deinit	16	static
+../DeviceDrivers/Src/buzzer_driver.c:140:17:buzzer_start_tone	24	static
+../DeviceDrivers/Src/buzzer_driver.c:196:17:buzzer_stop	24	static
+../DeviceDrivers/Src/buzzer_driver.c:220:17:buzzer_get_status	16	static
+../DeviceDrivers/Src/buzzer_driver.c:230:16:buzzer_get_state	16	static
+../DeviceDrivers/Src/buzzer_driver.c:240:6:buzzer_is_initialized	16	static
+../DeviceDrivers/Src/buzzer_driver.c:251:24:buzzer_validate_config	16	static
+../DeviceDrivers/Src/buzzer_driver.c:280:24:buzzer_set_pwm_params	40	static
+../DeviceDrivers/Src/buzzer_driver.c:298:24:buzzer_start_pwm	24	static
+../DeviceDrivers/Src/buzzer_driver.c:311:24:buzzer_stop_pwm	24	static

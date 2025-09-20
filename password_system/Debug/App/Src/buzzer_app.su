@@ -1,0 +1,6 @@
+../App/Src/buzzer_app.c:43:21:app_buzzer_init	16	static
+../App/Src/buzzer_app.c:64:21:app_buzzer_deinit	16	static
+../App/Src/buzzer_app.c:85:21:app_buzzer_play_success	64	static
+../App/Src/buzzer_app.c:115:21:app_buzzer_play_error	88	static
+../App/Src/buzzer_app.c:147:21:app_buzzer_play_warning	48	static
+../App/Src/buzzer_app.c:180:28:app_convert_bsp_status	16	static
