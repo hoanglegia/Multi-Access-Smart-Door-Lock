@@ -11,113 +11,99 @@
 
 /* Includes ----------------------------------------------------------- */
 #include "driver_keypad.h"
-#include "bsp_keypad.h"
+
 /* Private defines ---------------------------------------------------- */
-#define DEBOUNCE_TIME_MS        (50) // 50ms debounce time
-
-/* Private variables -------------------------------------------------- */
-static const char g_keypad_map[BSP_KEYPAD_NUM_ROWS][BSP_KEYPAD_NUM_COLS] =
-{
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
-
-// Buffer to store the pressed key from ISR
-static volatile char g_keypad_key_buffer = KEYPAD_NOT_PRESSED;
-static volatile uint32_t g_last_interrupt_time = 0;
+#define DEBOUNCE_TIME_MS (50) /*!< Debounce time in milliseconds */
 
 /* Private function prototypes ---------------------------------------- */
-static void keypad_set_sleep_mode(void);
-static char keypad_scan_for_key(uint8_t col_index);
+static void set_sleep_mode(keypad_t* handle);
+static char scan_for_key(keypad_t* handle, uint8_t col_index);
+static int8_t get_col_index(keypad_t* handle, uint16_t gpio_pin);
 
 /* Function definitions ----------------------------------------------- */
-void keypad_init(void)
+void keypad_driver_init(keypad_t* handle, const keypad_config_t* config, const char (*keymap)[KEYPAD_NUM_COLS])
 {
-	bsp_keypad_init();
-	keypad_set_sleep_mode();
+  handle->config = config;
+  handle->keymap = keymap;
+  handle->key_buffer = KEYPAD_NOT_PRESSED;
+  handle->last_interrupt_time = 0;
+
+  set_sleep_mode(handle);
 }
 
-void keypad_handler(uint8_t col_index)
+void keypad_driver_handler(keypad_t* handle, uint16_t gpio_pin)
 {
-  uint32_t current_time = HAL_GetTick();
-
-  // Debounce check
-  if ((current_time - g_last_interrupt_time) > DEBOUNCE_TIME_MS)
+  int8_t col_index = get_col_index(handle, gpio_pin);
+  if (col_index == -1)
   {
-    char pressed_key = keypad_scan_for_key(col_index);
+    return;
+  }
 
+  uint32_t current_time = HAL_GetTick();
+  if ((current_time - handle->last_interrupt_time) > DEBOUNCE_TIME_MS)
+  {
+    char pressed_key = scan_for_key(handle, col_index);
     if (pressed_key != KEYPAD_NOT_PRESSED)
     {
-      g_keypad_key_buffer = pressed_key;
+      handle->key_buffer = pressed_key;
     }
-
-    // After scanning, return to sleep mode configuration
-    keypad_set_sleep_mode();
+    set_sleep_mode(handle);
   }
-  g_last_interrupt_time = current_time;
+  handle->last_interrupt_time = current_time;
 }
 
-char keypad_get_key(void)
+char keypad_driver_get_key(keypad_t* handle)
 {
-  char key = g_keypad_key_buffer;
-  g_keypad_key_buffer = KEYPAD_NOT_PRESSED; // Clear buffer after reading
+  char key = handle->key_buffer;
+  handle->key_buffer = KEYPAD_NOT_PRESSED;
   return key;
 }
 
 /* Private definitions ----------------------------------------------- */
-
-/**
- * @brief  Configures the keypad for low-power sleep mode, ready for interrupts.
- *         Sets all row pins to LOW.
- */
-
-static void keypad_set_sleep_mode(void)
+static void set_sleep_mode(keypad_t* handle)
 {
-  // Dùng hàm BSP để ghi
-  for (uint8_t i = 0; i < BSP_KEYPAD_NUM_ROWS; i++)
+  for (uint8_t i = 0; i < KEYPAD_NUM_ROWS; i++)
   {
-    bsp_keypad_write_row(i, BSP_KEYPAD_PIN_RESET);
+    HAL_GPIO_WritePin(handle->config->rows[i].port, handle->config->rows[i].pin, GPIO_PIN_RESET);
   }
 }
 
-/**
- * @brief  Performs a selective scan to identify the exact key pressed.
- *
- * @param[in]  triggered_col_pin  The column pin that caused the interrupt.
- *
- * @return The character of the pressed key, or KEYPAD_NOT_PRESSED.
- */
-
-static char keypad_scan_for_key(uint8_t col_index)
+static char scan_for_key(keypad_t* handle, uint8_t col_index)
 {
   char key = KEYPAD_NOT_PRESSED;
 
-  // Dùng hàm BSP để ghi
-  for (uint8_t i = 0; i < BSP_KEYPAD_NUM_ROWS; i++)
+  for (uint8_t i = 0; i < KEYPAD_NUM_ROWS; i++)
   {
-    bsp_keypad_write_row(i, BSP_KEYPAD_PIN_SET);
+    HAL_GPIO_WritePin(handle->config->rows[i].port, handle->config->rows[i].pin, GPIO_PIN_SET);
   }
 
-  for (uint8_t row = 0; row < BSP_KEYPAD_NUM_ROWS; row++)
+  for (uint8_t row = 0; row < KEYPAD_NUM_ROWS; row++)
   {
-    bsp_keypad_write_row(row, BSP_KEYPAD_PIN_RESET); // Kích hoạt hàng hiện tại
-    //HAL_Delay(1); // Delay nhỏ
+    HAL_GPIO_WritePin(handle->config->rows[row].port, handle->config->rows[row].pin, GPIO_PIN_RESET);
+    //HAL_Delay(1);
     for (volatile uint32_t i = 0; i < 500; i++);
 
-    // Dùng hàm BSP để đọc
-    if (bsp_keypad_read_col(col_index) == BSP_KEYPAD_PIN_RESET)
+    if (HAL_GPIO_ReadPin(handle->config->cols[col_index].port, handle->config->cols[col_index].pin) == GPIO_PIN_RESET)
     {
-      key = g_keypad_map[row][col_index];
+      key = handle->keymap[row][col_index];
       break;
     }
 
-    bsp_keypad_write_row(row, BSP_KEYPAD_PIN_SET); // Hủy kích hoạt hàng
+    HAL_GPIO_WritePin(handle->config->rows[row].port, handle->config->rows[row].pin, GPIO_PIN_SET);
   }
-
   return key;
 }
 
-/* End of file -------------------------------------------------------- */
-
+static int8_t get_col_index(keypad_t* handle, uint16_t gpio_pin)
+{
+  for (int i = 0; i < KEYPAD_NUM_COLS; i++)
+  {
+    if (gpio_pin == handle->config->cols[i].pin)
+    {
+      // A more robust check would also compare the port if multiple pins have the same number.
+      // For this specific hardware, comparing pin number is sufficient.
+      return i;
+    }
+  }
+  return -1;
+}

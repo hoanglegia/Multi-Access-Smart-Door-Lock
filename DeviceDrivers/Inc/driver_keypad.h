@@ -13,55 +13,79 @@
  *             Columns should be configured as External Interrupt with Pull-up.
  */
 
-/* Define to prevent recursive inclusion ------------------------------ */
-#ifndef __KEYPAD_H
-#define __KEYPAD_H
+#ifndef __DRIVER_KEYPAD_H
+#define __DRIVER_KEYPAD_H
 
 /* Includes ----------------------------------------------------------- */
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
 /* Public defines ----------------------------------------------------- */
-#define KEYPAD_NOT_PRESSED ('\0') /*!< Value returned when no new key is available */
+#define KEYPAD_NOT_PRESSED ('\0') /*!< Value returned when no key is pressed */
+#define KEYPAD_NUM_ROWS    (4)    /*!< Number of rows in the keypad matrix */
+#define KEYPAD_NUM_COLS    (4)    /*!< Number of columns in the keypad matrix */
 
 /* Public enumerate/structure ----------------------------------------- */
-/* Public macros ------------------------------------------------------ */
-/* Public variables --------------------------------------------------- */
+/**
+ * @brief Structure to define the GPIO pins for a single row or column.
+ */
+typedef struct
+{
+  GPIO_TypeDef* port; /*!< GPIO port */
+  uint16_t      pin;  /*!< GPIO pin */
+}
+keypad_pin_t;
+
+/**
+ * @brief Configuration structure for the keypad, provided by the BSP.
+ */
+typedef struct
+{
+  keypad_pin_t rows[KEYPAD_NUM_ROWS]; /*!< Array of row pin configurations */
+  keypad_pin_t cols[KEYPAD_NUM_COLS]; /*!< Array of column pin configurations */
+}
+keypad_config_t;
+
+/**
+ * @brief Keypad handle structure, contains all data for a keypad instance.
+ */
+typedef struct
+{
+  const keypad_config_t* config;              /*!< Pointer to the hardware configuration */
+  const char (*keymap)[KEYPAD_NUM_COLS];     /*!< Pointer to the key mapping array */
+  volatile char        key_buffer;            /*!< Single-character buffer for the pressed key */
+  volatile uint32_t    last_interrupt_time;   /*!< Timestamp for debouncing */
+}
+keypad_t;
+
 /* Public function prototypes ----------------------------------------- */
 /**
- * @brief  Initializes the keypad driver for interrupt-based operation.
+ * @brief  Initializes the keypad driver handle.
  *
- * @param[in]  None
+ * @param[in]     handle  Pointer to the keypad handle structure.
+ * @param[in]     config  Pointer to the hardware configuration structure.
+ * @param[in]     keymap  Pointer to the 4x4 key mapping array.
  *
- * @attention  GPIO pins must be configured in the IOC file before calling.
- *
- * @return None
+ * @return None.
  */
-void keypad_init(void);
+void keypad_driver_init(keypad_t* handle, const keypad_config_t* config, const char (*keymap)[KEYPAD_NUM_COLS]);
 
 /**
- * @brief  This function is called when a keypad interrupt occurs.
- *         It handles the key detection logic.
+ * @brief  Interrupt handler for the keypad driver, called by the BSP.
  *
- * @param[in]  col_index  The logical index (0-3) of the column that triggered the interrupt.
+ * @param[in,out] handle    Pointer to the keypad handle.
+ * @param[in]     gpio_pin  The specific GPIO pin that triggered the interrupt.
  *
- * @return None
+ * @return None.
  */
-void keypad_handler(uint8_t col_index);
+void keypad_driver_handler(keypad_t* handle, uint16_t gpio_pin);
 
 /**
- * @brief  Gets the last key that was pressed. (Non-blocking)
+ * @brief  Gets the last pressed key from the driver's buffer.
  *
- * @param[in]  None
+ * @param[in,out] handle  Pointer to the keypad handle.
  *
- * @attention  This function should be called periodically in the main loop.
- *             It retrieves the key from a buffer and clears the buffer.
- *
- * @return
- *  - The character of the last pressed key.
- *  - KEYPAD_NOT_PRESSED ('\0') if no new key has been pressed since the last call.
+ * @return The character of the pressed key or KEYPAD_NOT_PRESSED.
  */
-char keypad_get_key(void);
+char keypad_driver_get_key(keypad_t* handle);
 
-#endif // __KEYPAD_H
-
-/* End of file -------------------------------------------------------- */
+#endif // __DRIVER_KEYPAD_H
